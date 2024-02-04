@@ -124,6 +124,20 @@ expression: no_this_before_super
 
   ⚠ eslint(no-this-before-super): Expected to always call super() before this/super property access.
    ╭─[no_this_before_super.tsx:1:21]
+ 1 │ class A extends B { constructor() { const foo = bar ? super() : null; this.setFoo(foo); } }
+   ·                     ─────────────────────────────────────────────────────────────────────
+   ╰────
+  help: Call super() before this/super property access.
+
+  ⚠ eslint(no-this-before-super): Expected to always call super() before this/super property access.
+   ╭─[no_this_before_super.tsx:1:21]
+ 1 │ class A extends B { constructor() { a?.foo(super()); this.a(); } }
+   ·                     ────────────────────────────────────────────
+   ╰────
+  help: Call super() before this/super property access.
+
+  ⚠ eslint(no-this-before-super): Expected to always call super() before this/super property access.
+   ╭─[no_this_before_super.tsx:1:21]
  1 │ class A extends B { constructor() { if (foo) { if (bar) { } super(); } this.a(); }}
    ·                     ──────────────────────────────────────────────────────────────
    ╰────

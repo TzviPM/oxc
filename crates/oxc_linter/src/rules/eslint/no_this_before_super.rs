@@ -283,6 +283,8 @@ fn test() {
         ("class A extends B { constructor() { foo &&= super().a; this.c(); } }", None),
         ("class A extends B { constructor() { foo ||= super().a; this.c(); } }", None),
         ("class A extends B { constructor() { foo ??= super().a; this.c(); } }", None),
+        ("class A extends B { constructor() { const foo = bar ? super() : null; this.setFoo(foo); } }", None),
+        ("class A extends B { constructor() { a?.foo(super()); this.a(); } }", None),
         ("class A extends B { constructor() { if (foo) { if (bar) { } super(); } this.a(); }}", None),
         ("class A extends B {
                 constructor() {

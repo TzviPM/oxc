@@ -696,6 +696,68 @@ impl<'a> Visit<'a> for SemanticBuilder<'a> {
         self.leave_node(kind);
     }
 
+    fn visit_conditional_expression(&mut self, expr: &ConditionalExpression<'a>) {
+        let kind = AstKind::ConditionalExpression(self.alloc(expr));
+        self.enter_node(kind);
+        self.visit_expression(&expr.test);
+
+        /* cfg  */
+        let test_end_ix = self.cfg.current_node_ix;
+        let consequent_start_ix = self.cfg.new_basic_block();
+        /* cfg  */
+
+        self.visit_expression(&expr.consequent);
+
+        /* cfg  */
+        let consequent_end_ix = self.cfg.current_node_ix;
+        let alternate_start_ix = self.cfg.new_basic_block();
+        /* cfg  */
+
+        self.visit_expression(&expr.alternate);
+
+        /* cfg  */
+        let alternate_end_ix = self.cfg.current_node_ix;
+        let after_expr_ix = self.cfg.new_basic_block();
+
+        // test into consequent
+        self.cfg.add_edge(test_end_ix, consequent_start_ix, EdgeType::Normal);
+        self.cfg.add_edge(consequent_end_ix, after_expr_ix, EdgeType::Normal);
+
+        // test into alternate
+        self.cfg.add_edge(test_end_ix, alternate_start_ix, EdgeType::Normal);
+        self.cfg.add_edge(alternate_end_ix, after_expr_ix, EdgeType::Normal);
+        /* cfg  */
+
+        self.leave_node(kind);
+    }
+
+    fn visit_chain_expression(&mut self, expr: &ChainExpression<'a>) {
+        let kind = AstKind::ChainExpression(self.alloc(expr));
+        self.enter_node(kind);
+
+        /* cfg  */
+        let chain_start_ix = self.cfg.current_node_ix;
+        let expr_start_ix = self.cfg.new_basic_block();
+        /* cfg  */
+
+
+        self.visit_chain_element(&expr.expression);
+        
+        /* cfg */
+        let expr_end_ix = self.cfg.current_node_ix;
+        let after_chain_ix = self.cfg.new_basic_block();
+
+        // chain on undefined/null skips evaluating expr
+        self.cfg.add_edge(chain_start_ix, after_chain_ix, EdgeType::Normal);
+
+        // chain on defined non-null evaluates expr
+        self.cfg.add_edge(chain_start_ix, expr_start_ix, EdgeType::Normal);
+        self.cfg.add_edge(expr_end_ix, after_chain_ix, EdgeType::Normal);
+        /* cfg */
+
+        self.leave_node(kind);
+    }
+
     fn visit_assignment_expression(&mut self, expr: &AssignmentExpression<'a>) {
         // assignment expressions can include an operator, which
         // can be used to determine the control flow of the expression.
